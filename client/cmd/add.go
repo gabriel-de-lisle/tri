@@ -16,20 +16,17 @@ var addCmd = &cobra.Command{
 	Use:   "add task...",
 	Short: "Add a task",
 	Long:  "Add a task",
-	Run: func(cmd *cobra.Command, args []string) {
-		CallWithClientAndContext(addRun, cmd, args)
-	},
+	Run:   AddClientAndContext(addRun),
 }
 
 func addRun(client pb.TaskHandlerClient, ctx context.Context, cmd *cobra.Command, args []string) {
 	for _, arg := range args {
-		_, err := client.AddTask(ctx, &pb.AddTaskRequest{Description: arg, Priority: 1})
+		_, err := client.AddTask(ctx, &pb.AddTaskRequest{Description: arg, Priority: int32(priority)})
 		if err != nil {
 			log.Fatalf("Could not add tasks: %v", err)
 		}
 	}
 	fmt.Println("Tasks successfully added")
-	displayTasks(client, ctx, len(args), false, false)
 }
 
 func init() {

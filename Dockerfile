@@ -13,6 +13,5 @@ RUN go mod download
 COPY server/*.go ./
 
 RUN go build -o ./server
-RUN echo '[]' > .tri.json
 
 CMD [ "./server" ]

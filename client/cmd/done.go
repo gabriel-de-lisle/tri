@@ -15,29 +15,27 @@ var doneCmd = &cobra.Command{
 	Use:   "done task...",
 	Short: "Mark a task as done",
 	Long:  "When a task is completed, use this command to mark it as done",
-	Run: func(cmd *cobra.Command, args []string) {
-		CallWithClientAndContext(runDone, cmd, args)
-	},
+	Run:   AddClientAndContext(runDone),
 }
 
 func runDone(client pb.TaskHandlerClient, ctx context.Context, cmd *cobra.Command, args []string) {
-	var taskNumbers []int64
+	if len(args) == 0 {
+		log.Fatalf("Please specify the ids of the tasks you want to mark as done")
+	}
+	var taskNumbers []uint32
 	for _, arg := range args {
-		taskNumber, err := strconv.ParseInt(arg, 10, 64)
+		taskNumber, err := strconv.Atoi(arg)
 		if err != nil {
 			log.Fatalf("%v", err)
 		}
-		taskNumbers = append(taskNumbers, taskNumber)
-	}
-	if len(args) == 0 {
-		taskNumbers = append(taskNumbers, 1)
+		taskNumbers = append(taskNumbers, uint32(taskNumber))
 	}
 
-	r, err := client.SetDoneTask(ctx, &pb.SetDoneTaskRequest{Positions: taskNumbers})
+	r, err := client.SetDoneTask(ctx, &pb.SetDoneTaskRequest{Ids: taskNumbers})
 	if err != nil {
 		log.Fatalf("Could set tasks to done: %v", err)
 	}
-	fmt.Println(r.GetMessage())
+	fmt.Println(r.Message)
 	displayTasks(client, ctx, len(taskNumbers), true, false)
 }
 

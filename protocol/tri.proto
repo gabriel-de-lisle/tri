@@ -23,7 +23,7 @@ message AddTaskReply {
 
 // The request message containing the user's name.
 message SetDoneTaskRequest {
-  repeated int64 positions = 1;
+  repeated uint32 ids = 1;
 }
 
 // The response message containing the greetings
@@ -32,7 +32,7 @@ message SetDoneTaskReply {
 }
 
 message GetTaskRequest {
-  int64 top = 1;
+  int32 top = 1;
   bool showDone = 2;
   bool showAll = 3;
 }
@@ -41,7 +41,7 @@ message Task{
   string description = 1;
   int32 priority = 2;
   bool done = 3;
-  int32 position = 4;
+  uint32 id = 4;
 }
 
 message GetTaskReply{

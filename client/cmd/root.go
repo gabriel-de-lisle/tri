@@ -39,17 +39,20 @@ func init() {
 	flag.Parse()
 }
 
-type clientCall func(pb.TaskHandlerClient, context.Context, *cobra.Command, []string)
+type rawCmd func(*cobra.Command, []string)
+type cmdWithClientAndContext func(pb.TaskHandlerClient, context.Context, *cobra.Command, []string)
 
-func CallWithClientAndContext(call clientCall, cmd *cobra.Command, args []string) {
-	conn, err := grpc.Dial("localhost:5001", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+func AddClientAndContext(call cmdWithClientAndContext) rawCmd {
+	return func(cmd *cobra.Command, args []string) {
+		conn, err := grpc.Dial(*url, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			log.Fatalf("did not connect: %v", err)
+		}
+		defer conn.Close()
+		client := pb.NewTaskHandlerClient(conn)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+
+		call(client, ctx, cmd, args)
 	}
-	defer conn.Close()
-	client := pb.NewTaskHandlerClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	call(client, ctx, cmd, args)
 }

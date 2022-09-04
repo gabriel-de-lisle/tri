@@ -17,9 +17,7 @@ var listCmd = &cobra.Command{
 	Use:   "list [top]",
 	Short: "List all tasks",
 	Long:  "List all tasks",
-	Run: func(cmd *cobra.Command, args []string) {
-		CallWithClientAndContext(listRun, cmd, args)
-	},
+	Run:   AddClientAndContext(listRun),
 }
 
 func listRun(client pb.TaskHandlerClient, ctx context.Context, cmd *cobra.Command, args []string) {
@@ -48,18 +46,18 @@ func listRun(client pb.TaskHandlerClient, ctx context.Context, cmd *cobra.Comman
 func displayTasks(client pb.TaskHandlerClient, ctx context.Context, top int, showDone bool, showAll bool) {
 	w := tabwriter.NewWriter(os.Stdout, 3, 0, 1, ' ', 1)
 
-	reply, err := client.GetTask(ctx, &pb.GetTaskRequest{Top: int64(top), ShowDone: showDone, ShowAll: showAll})
+	reply, err := client.GetTask(ctx, &pb.GetTaskRequest{Top: int32(top), ShowDone: showDone, ShowAll: showAll})
 	if err != nil {
-		log.Fatalf("Could not add tasks: %v", err)
+		log.Fatalf("Could list tasks: %v", err)
 	}
 
 	for _, task := range reply.GetTasks() {
 		doneState := " "
-		if task.GetDone() {
+		if task.Done {
 			doneState = "x"
 		}
 
-		line := fmt.Sprintf("%v.\t%s\t(%v)\t%s\n", task.GetPosition(), doneState, task.GetPriority(), task.GetDescription())
+		line := fmt.Sprintf("%v.\t%s\t(%v)\t%s\n", task.Id, doneState, task.Priority, task.Description)
 		fmt.Fprint(w, line)
 	}
 	w.Flush()

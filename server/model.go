@@ -1,31 +1,55 @@
 package main
 
 import (
-	"encoding/json"
-	"io/ioutil"
-	"time"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
+var DB *gorm.DB
+
 type Task struct {
-	Text     string
-	Priority int32
-	Date     time.Time
-	Done     bool
+	gorm.Model
+	Description string
+	Priority    int8
+	Done        bool
 }
 
-func (task *Task) SetPriority(p int32) {
-	switch p {
-	case 1:
-		task.Priority = 1
-	case 3:
-		task.Priority = 3
-	default:
-		task.Priority = 2
+func InitDB() {
+	var err error
+	DB, err = gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+	if err != nil {
+		panic("failed to connect database")
 	}
+
+	DB.AutoMigrate(&Task{})
 }
 
-func (task *Task) SetDate() {
-	task.Date = time.Now()
+func CreateTask(description string, priority int) error {
+	newTask := Task{
+		Description: description,
+		Done:        false,
+	}
+
+	switch priority {
+	case 1:
+		newTask.Priority = 1
+	case 3:
+		newTask.Priority = 3
+	default:
+		newTask.Priority = 2
+	}
+
+	DB.AutoMigrate(&Task{})
+
+	DB.Create(&newTask)
+
+	return nil
+}
+
+func MarkTasksAsDone(taskIds []uint) error {
+	result := DB.Model(&Task{}).Where("ID IN ?", taskIds).Update("Done", true)
+
+	return result.Error
 }
 
 type ByPriority []Task
@@ -40,37 +64,22 @@ func (s ByPriority) Less(i int, j int) bool {
 		if s[i].Priority != s[j].Priority {
 			return s[i].Priority < s[j].Priority
 		}
-		return s[i].Date.After(s[j].Date)
+		return s[i].UpdatedAt.After(s[j].UpdatedAt)
 	} else {
-		return s[i].Date.After(s[j].Date)
+		return s[i].UpdatedAt.After(s[j].UpdatedAt)
 	}
 
 }
 
-func SaveTasks(filename string, tasks []Task) error {
-	b, err := json.Marshal(tasks)
-	if err != nil {
-		return err
-	}
-	err = ioutil.WriteFile(filename, b, 0644)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func ReadTasks(filename string) ([]Task, error) {
-	b, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return []Task{}, err
-	}
-
+func GetTasks(showAll bool, showDone bool) ([]Task, error) {
+	var result *gorm.DB
 	var tasks []Task
-	err = json.Unmarshal(b, &tasks)
-	if err != nil {
-		return []Task{}, err
+
+	if showAll {
+		result = DB.Find(&tasks)
+	} else {
+		result = DB.Where("Done = ?", showDone).Find(&tasks)
 	}
 
-	return tasks, nil
+	return tasks, result.Error
 }
