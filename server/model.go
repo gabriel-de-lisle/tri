@@ -1,4 +1,4 @@
-package todo
+package main
 
 import (
 	"encoding/json"
@@ -6,29 +6,29 @@ import (
 	"time"
 )
 
-type Item struct {
+type Task struct {
 	Text     string
-	Priority int
+	Priority int32
 	Date     time.Time
 	Done     bool
 }
 
-func (item *Item) SetPriority(p int) {
+func (task *Task) SetPriority(p int32) {
 	switch p {
 	case 1:
-		item.Priority = 1
+		task.Priority = 1
 	case 3:
-		item.Priority = 3
+		task.Priority = 3
 	default:
-		item.Priority = 2
+		task.Priority = 2
 	}
 }
 
-func (item *Item) SetDate() {
-	item.Date = time.Now()
+func (task *Task) SetDate() {
+	task.Date = time.Now()
 }
 
-type ByPriority []Item
+type ByPriority []Task
 
 func (s ByPriority) Len() int          { return len(s) }
 func (s ByPriority) Swap(i int, j int) { s[i], s[j] = s[j], s[i] }
@@ -47,8 +47,8 @@ func (s ByPriority) Less(i int, j int) bool {
 
 }
 
-func SaveItems(filename string, items []Item) error {
-	b, err := json.Marshal(items)
+func SaveTasks(filename string, tasks []Task) error {
+	b, err := json.Marshal(tasks)
 	if err != nil {
 		return err
 	}
@@ -60,17 +60,17 @@ func SaveItems(filename string, items []Item) error {
 	return nil
 }
 
-func ReadItems(filename string) ([]Item, error) {
+func ReadTasks(filename string) ([]Task, error) {
 	b, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return []Item{}, err
+		return []Task{}, err
 	}
 
-	var items []Item
-	err = json.Unmarshal(b, &items)
+	var tasks []Task
+	err = json.Unmarshal(b, &tasks)
 	if err != nil {
-		return []Item{}, err
+		return []Task{}, err
 	}
 
-	return items, nil
+	return tasks, nil
 }

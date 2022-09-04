@@ -1,0 +1,49 @@
+syntax = "proto3";
+option go_package = "./protocol";
+
+// The greeting service definition.
+service TaskHandler {
+  // Sends a greeting
+  rpc AddTask (AddTaskRequest) returns (AddTaskReply) {}
+  rpc SetDoneTask (SetDoneTaskRequest) returns (SetDoneTaskReply) {}
+  rpc GetTask (GetTaskRequest) returns (GetTaskReply) {}
+}
+
+// The request message containing the user's name.
+message AddTaskRequest {
+  string description = 1;
+  int32 priority = 2 ;
+}
+
+// The response message containing the greetings
+message AddTaskReply {
+  string message = 1;
+}
+
+
+// The request message containing the user's name.
+message SetDoneTaskRequest {
+  repeated int64 positions = 1;
+}
+
+// The response message containing the greetings
+message SetDoneTaskReply {
+  string message = 1;
+}
+
+message GetTaskRequest {
+  int64 top = 1;
+  bool showDone = 2;
+  bool showAll = 3;
+}
+
+message Task{
+  string description = 1;
+  int32 priority = 2;
+  bool done = 3;
+  int32 position = 4;
+}
+
+message GetTaskReply{
+  repeated Task tasks = 1;
+}

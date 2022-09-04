@@ -1,11 +1,22 @@
 # Tri
 
-Tri is a cli to manage todo tasks 
+Tri is a tool to manage todo tasks. It consists of gRPC server and a CLI client 
 
 ## Install
 
 ```bash
 go install github.com/gabriel-de-lisle/tri
+```
+
+Run server locally:
+```bash
+make server/build
+make server/start
+```
+
+Install CLI client:
+```bash
+make client/install
 ```
 ## Usage 
 
